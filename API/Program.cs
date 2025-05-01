@@ -4,6 +4,7 @@ using Infrastructure.Extensions;  // Infrastructure servislerini eklemek için
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:9000", "https://localhost:9001", "http://localhost:9000", "http://localhost:9000","https://test.polipersjournal.com", "http://test.polipersjournal.com")
+        policy.WithOrigins("https://localhost:9000", "https://localhost:9001", "http://localhost:9000", "http://localhost:9000", "https://test.polipersjournal.com", "http://test.polipersjournal.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -53,6 +54,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.EnableAnnotations(); // 📌 SwaggerOperation desteği için gerekli
+
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Fupitech API", Version = "v1" });
 
     // 🔥 Swagger için JWT Yetkilendirme Tanımlama
@@ -80,6 +83,12 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+
+    // XML yorumlarını aktif etmek için aşağıyı ekleyelim:
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+
 });
 builder.Services.AddOpenApi();
 

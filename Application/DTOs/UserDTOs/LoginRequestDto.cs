@@ -4,15 +4,12 @@ namespace Application.DTOs.UserDTOs
 {
     public class LoginRequestDto
     {
-        [Required(ErrorMessage = "Okul ID zorunludur.")]
-        public int CompanyId { get; set; } // Kullanıcının giriş yapacağı Şirket ID
-
-        public string? UserName { get; set; }
-        public string? Email { get; set; }
-        public string? PhoneNumber { get; set; }
+        public string? UserName { get; set; } // Kullanıcı adıyla giriş yapılabilir
+        public string? Email { get; set; } // E-posta ile giriş yapılabilir
+        public string? PhoneNumber { get; set; } // Telefon numarasıyla giriş yapılabilir
 
         [Required(ErrorMessage = "Şifre zorunludur.")]
-        public string Password { get; set; }
+        public string Password { get; set; } // Şifre zorunludur
     }
 
 }

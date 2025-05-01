@@ -29,48 +29,43 @@ namespace Application.Services
 
         public async Task<ApiResponse<object>> LoginAsync(LoginRequestDto request)
         {
-            // 1️⃣ Okul ayarlarını getir
-            var settings = await _settingRepository.GetSettingsByCompanyIdAsync(request.CompanyId);
-            if (settings == null)
-                return new ApiResponse<object> { Success = false, Message = "Okul ayarları bulunamadı." };
-
-            // 2️⃣ Okulun izin verdiği giriş yöntemine göre kullanıcıyı bul
             ApplicationUser? user = null;
 
-            if (settings.AllowedLoginMethods.HasFlag(LoginMethod.Email) && !string.IsNullOrWhiteSpace(request.Email))
-                user = await _userManager.FindByEmailAsync(request.Email);
-
-            if (user == null && settings.AllowedLoginMethods.HasFlag(LoginMethod.Username) && !string.IsNullOrWhiteSpace(request.UserName))
+            // 🧩 1. Sırayla dolu olan kimlik bilgisine göre kullanıcıyı bul
+            if (!string.IsNullOrWhiteSpace(request.UserName))
                 user = await _userManager.FindByNameAsync(request.UserName);
 
-            if (user == null && settings.AllowedLoginMethods.HasFlag(LoginMethod.Phone) && !string.IsNullOrWhiteSpace(request.PhoneNumber))
+            if (user == null && !string.IsNullOrWhiteSpace(request.Email))
+                user = await _userManager.FindByEmailAsync(request.Email);
+
+            if (user == null && !string.IsNullOrWhiteSpace(request.PhoneNumber))
                 user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
 
             if (user == null)
                 return new ApiResponse<object> { Success = false, Message = "Geçersiz kimlik bilgileri." };
 
-            // 3️⃣ Şifre doğrulama
+            // 🔐 2. Şifre kontrolü
             if (!await _userManager.CheckPasswordAsync(user, request.Password))
                 return new ApiResponse<object> { Success = false, Message = "Geçersiz kimlik bilgileri." };
 
-            // 4️⃣ Kullanıcının gerekli doğrulamalardan geçtiğini kontrol et
-            if (settings.RequireEmailConfirmation && !user.EmailConfirmed)
+            // ✅ 3. Onay kontrolleri
+            if (!user.EmailConfirmed)
                 return new ApiResponse<object> { Success = false, Message = "E-posta adresinizi doğrulamanız gerekiyor." };
 
-            if (settings.RequirePhoneConfirmation && !user.PhoneNumberConfirmed)
+            if (!user.PhoneNumberConfirmed)
                 return new ApiResponse<object> { Success = false, Message = "Telefon numaranızı doğrulamanız gerekiyor." };
 
-            if (settings.RequireAdminApproval && user.Invalidated == 0)
+            if (user.Invalidated == 0)
                 return new ApiResponse<object> { Success = false, Message = "Hesabınız henüz yönetici tarafından onaylanmadı." };
 
-            // 5️⃣ JWT Token oluştur
-            var token = _jwtService.GenerateToken(user);
+            // 🔑 4. Token oluştur
+            var token = await _jwtService.GenerateToken(user);
 
             return new ApiResponse<object>
             {
                 Success = true,
                 Message = "Giriş başarılı.",
-                Data = new {Token= token.Result }
+                Data = new { Token = token }
             };
         }
 

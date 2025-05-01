@@ -64,7 +64,7 @@ namespace Infrastructure.Migrations
             "devrimmehmet@gmail.com",
             "DEVRIMMEHMET@GMAIL.COM",
             true, // EmailConfirmed
-            "AQAAAAIAAYagAAAAEKXnEcamtaYm+3XWvyjAWsxYw0mEUUePDpN2JXthvlrRvG3P/8zrNH63LDmgHFskzA==",
+            "AQAAAAIAAYagAAAAEKXnEcamtaYm+3XWvyjAWsxYw0mEUUePDpN2JXthvlrRvG3P/8zrNH63LDmgHFskzA==",  //12345Poli*
             "R3V5WEDJMWYQNAL7W3UMIQRV7F2STDHZ",
             "9c4b1d9b-e66e-4c8e-a626-f18bc45a9843",
             "905438194976",
