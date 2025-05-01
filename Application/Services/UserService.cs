@@ -73,7 +73,9 @@ namespace Application.Services
         public async Task<ApiResponse<object>> RegisterUserAsync(RegisterDto model)
         {
             // 1️⃣ Şirket ID kontrolü
-            var settings = await _settingRepository.GetSettingsByCompanyIdAsync(model.CompanyId);
+            var companyId = 1; // 🏢 Şirket ID artık sabit
+            var settings = await _settingRepository.GetSettingsByCompanyIdAsync(companyId);
+
             if (settings == null)
                 return new ApiResponse<object> { Success = false, Message = "Bu şirket için sistem ayarları yapılandırılmamış." };
 
@@ -98,7 +100,7 @@ namespace Application.Services
                 PhoneNumber = model.PhoneNumber,
                 Name = model.Name ?? string.Empty,
                 Surname = model.Surname ?? string.Empty,
-                CompanyId = model.CompanyId,
+                CompanyId = companyId,
                 TC = settings.RequireTCApproval && !string.IsNullOrWhiteSpace(model.TC) ? Sha256Hash(model.TC) : null,
                 Invalidated = settings.RequireAdminApproval ? (byte)0 : (byte)1,
                 EmailConfirmed = !settings.RequireEmailConfirmation,
@@ -109,6 +111,14 @@ namespace Application.Services
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
                 return new ApiResponse<object> { Success = false, Message = "Kullanıcı kaydı başarısız.", Data = result.Errors };
+
+
+            // ✅ Otomatik Rol Atama
+            var roleName = "USER"; // veya rol adı tabloya göre dinamik çekilebilir
+            var addToRoleResult = await _userManager.AddToRoleAsync(user, roleName);
+
+            if (!addToRoleResult.Succeeded)
+                return new ApiResponse<object> { Success = false, Message = "Kullanıcı oluşturuldu fakat rol ataması başarısız.", Data = addToRoleResult.Errors };
 
             return new ApiResponse<object> { Success = true, Message = "Kayıt başarılı. Lütfen doğrulama işlemlerini tamamlayın." };
         }
