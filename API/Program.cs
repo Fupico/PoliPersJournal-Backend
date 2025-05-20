@@ -1,11 +1,14 @@
 ﻿using API.Middlewares;
 using Application.Extensions;  // Application servislerini eklemek için
+using Domain.Interfaces;
 using Infrastructure.Extensions;  // Infrastructure servislerini eklemek için
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
+using System.Runtime.InteropServices; // OperatingSystem için
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,16 +19,20 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:9000", "https://localhost:9001", "http://localhost:9000", "http://localhost:9000", "https://test.polipersjournal.com", "http://test.polipersjournal.com")
+        policy.WithOrigins("https://localhost:9000", "https://localhost:9001", "http://localhost:9000", "http://localhost:9000", "https://test.polipersjournal.com", "http://test.polipersjournal.com", "https://polipersjournal.com", "http://polipersjournal.com")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
+
+
+
 // ✅ 2️⃣ Servisleri API'ye ekle
 builder.Services.AddControllers();
 builder.Services.AddApplicationServices(); // Application servisleri
 builder.Services.AddInfrastructureServices(builder.Configuration); // Infrastructure servisleri
+builder.Services.AddHttpContextAccessor(); // IHttpContextAccessor için
 
 // ✅ 3️⃣ JWT Authentication Ayarları
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -92,8 +99,21 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddOpenApi();
 
+
 var app = builder.Build();
 app.UseStaticFiles(); // wwwroot varsayılan olarak buraya bağlanır
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("🔥 Startup Exception: " + ex.Message);
+        throw;
+    }
+});
 
 // ✅ 5️⃣ Middleware Sırası
 
@@ -111,4 +131,34 @@ if (app.Environment.IsDevelopment()) // 🔹 5️⃣ Geliştirme ortamı için S
 }
 
 app.MapControllers(); // 🔹 6️⃣ Controller'ları API'ye kaydet
+
+// 📁 wwwroot klasörü yolu
+var wwwRootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+
+// 📁 wwwroot yoksa oluştur
+if (!Directory.Exists(wwwRootPath))
+{
+    Directory.CreateDirectory(wwwRootPath);
+    Console.WriteLine($"📁 wwwroot klasörü oluşturuldu: {wwwRootPath}");
+}
+else
+{
+    Console.WriteLine($"📁 wwwroot klasörü zaten mevcut: {wwwRootPath}");
+}
+
+// 🐧 Eğer Linux sistemdeysek, 777 yetkisi ver
+if (OperatingSystem.IsLinux())
+{
+    try
+    {
+        var chmod = System.Diagnostics.Process.Start("chmod", $"-R 777 {wwwRootPath}");
+        chmod?.WaitForExit();
+        Console.WriteLine($"🔐 wwwroot klasörüne 777 chmod verildi: {wwwRootPath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️ chmod hatası: {ex.Message}");
+    }
+}
+
 app.Run();

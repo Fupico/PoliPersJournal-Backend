@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Infrastructure.Security;
+using Infrastructure.Services;
 
 namespace Infrastructure.Extensions
 {
@@ -47,6 +48,7 @@ namespace Infrastructure.Extensions
             services.AddScoped<ILanguageRepository, LanguageRepository>();
             services.AddScoped<IPageTranslationRepository, PageTranslationRepository>();
             services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IFileService, FileService>();
             return services;
         }
     }
