@@ -8,6 +8,7 @@ using Application.Interfaces;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
@@ -17,11 +18,13 @@ namespace Application.Services
     {
         private readonly IPostRepository _postRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IWebHostEnvironment _environment;
 
-        public PostService(IPostRepository postRepository, IHttpContextAccessor httpContextAccessor)
+        public PostService(IPostRepository postRepository, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment environment)
         {
             _postRepository = postRepository;
             _httpContextAccessor = httpContextAccessor;
+            _environment = environment;
         }
 
         public async Task<List<PostDto>> GetPostsByCategorySlugAsync(string categorySlug, string languageCode)
@@ -31,9 +34,9 @@ namespace Application.Services
             return posts.Select(post => new PostDto
             {
                 Id = post.Id,
-                Title = post.PostTranslations.FirstOrDefault()?.Title ,
+                Title = post.PostTranslations.FirstOrDefault()?.Title ?? string.Empty,
                 Slug = post.Slug,
-                Content = post.PostTranslations.FirstOrDefault()?.Content ,
+                Content = post.PostTranslations.FirstOrDefault()?.Content ?? string.Empty,
                 CreatedAt = post.CreatedAt
             }).ToList();
         }
@@ -249,8 +252,7 @@ namespace Application.Services
 
         public async Task<PdfFileDto?> GetPostPdfByLanguageAsync(int postId, string lang)
         {
-            // Örnek: pdf dosyası yolu "wwwroot/pdfs/{lang}/post_{id}.pdf"
-            var filePath = Path.Combine("wwwroot", "pdfs", lang.ToLower(), $"post_{postId}.pdf");
+            var filePath = Path.Combine(_environment.WebRootPath, "pdfs", lang.ToLower(), $"post_{postId}.pdf");
 
             if (!File.Exists(filePath))
                 return null;

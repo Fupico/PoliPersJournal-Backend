@@ -1,89 +1,175 @@
-# PoliPersJournal - Backend
+# PoliPersJournal Backend
 
-PoliPersJournal, çok dilli içerik yönetimi yapısına sahip, blog/journal türünde geliştirilen bir platformdur.
-Bu repo, projenin **backend (sunucu tarafı)** kodlarını içermektedir.
+PoliPersJournal backend, cok dilli icerik yonetimi icin gelistirilmis bir `ASP.NET Core Web API` projesidir. Cozum yapisi `DDD` ve `Clean Architecture` katmanlarina ayrilir.
 
-Proje, **.NET 9 Web API**, **DDD (Domain-Driven Design)** ve **Clean Architecture** mimarisi ile yazılmıştır.
-Tamamıyla **özgür yazılım** ve **açık kaynak** felsefesine uygun şekilde geliştirilmiştir.
+Bu repo artik:
 
-> Projenin frontend kısmı için: 👉 [PoliPersJournal Frontend Repo](https://github.com/Fupico/PoliPersJournal-frontend)
+- `.NET 10` uzerinde calisir
+- `PostgreSQL` kullanir
+- EF Core migration'larini startup sirasinda otomatik uygular
+- `.env` dosyasindan environment variable yukleyebilir
+- kalici mount edilen dizini `wwwroot` olarak kullanabilir
+- kok dizindeki `Dockerfile` ile Coolify uzerinden publish edilebilir
 
----
+## Teknoloji Yigini
 
-## 🚀 Hızlı Başlangıç
+- .NET 10
+- ASP.NET Core Web API
+- Entity Framework Core 10
+- PostgreSQL
+- ASP.NET Core Identity
+- JWT Authentication
+- Swagger / Swashbuckle
 
-### Gereksinimler:
+## Proje Katmanlari
 
-- .NET 9 SDK
-- MSSQL Server
+| Katman | Aciklama |
+| --- | --- |
+| `API` | Controller'lar, middleware'ler, uygulama giris noktasi |
+| `Application` | DTO'lar, servisler ve uygulama is kurallari |
+| `Domain` | Entity'ler, enum'lar ve arayuzler |
+| `Infrastructure` | EF Core, repository'ler, guvenlik ve dis bagimliliklar |
+| `Shared` | Ortak response ve exception yapilari |
 
-### Projeyi Çalıştırma
+Detayli notlar icin [PoliPersJournal-Backend-Yapisi.md](PoliPersJournal-Backend-Yapisi.md) dosyasina bakabilirsiniz.
 
-```bash
-cd PoliPersJournal.Backend
+## Gereksinimler
 
-# Bağımlılıkları yükle (opsiyonel)
-dotnet restore
+- `.NET SDK 10`
+- `PostgreSQL 16+` tavsiye edilir
+- Lokal veri tasima icin Windows uzerinde erisilebilir `SQL Server`
 
-# Veritabanını güncelle (migrations uygulanır)
-dotnet ef database update
+## Konfigurasyon
 
-# Projeyi başlat
-https://localhost:1923 üzerinden Swagger açılır
-dotnet run
+Varsayilan ayarlar [API/appsettings.json](/c:/Github/Organizations/Fupico/PoliPersJournal-Backend/API/appsettings.json) icine eklendi.
+
+Onemli ayarlar:
+
+- `ConnectionStrings__DefaultConnection`
+- `MSSQL_SOURCE_CONNECTION_STRING`
+- `MSSQL_SOURCE_SCHEMA`
+- `APP_WWWROOT_PATH`
+- `JwtSettings__Secret`
+- `JwtSettings__Issuer`
+- `JwtSettings__Audience`
+- `JwtSettings__TokenExpirationInMinutes`
+
+Repo kokunde `.env` kullanabilirsiniz. Ornek anahtarlar [ .env.example ](/c:/Github/Organizations/Fupico/PoliPersJournal-Backend/.env.example) dosyasindadir.
+
+Varsayilan PostgreSQL connection string formati:
+
+```text
+Host=localhost;Port=5432;Database=polipersjournal;Username=postgres;Password=postgres
 ```
 
----
+## Lokal Calistirma
 
-## 📂 Proje Katmanları (DDD + Clean Architecture)
+1. Bagimliliklari yukleyin:
 
-| Katman           | Açıklama                                                 |
-| ---------------- | -------------------------------------------------------- |
-| `API`            | HTTP uç noktaları ve controller'lar                      |
-| `Application`    | DTO, servisler ve validasyon kuralları                   |
-| `Domain`         | Varlıklar, interface'ler, iş kuralları                   |
-| `Infrastructure` | Repository, kimlik doğrulama, EF Core DbContext          |
-| `Shared`         | Ortak yapılar: hata yönetimi, API response modelleri vs. |
+```bash
+dotnet restore
+```
 
-Detaylı açıklama için 👉 [PoliPersJournal-Backend-Yapisi.md](PoliPersJournal-Backend-Yapisi.md)
+2. Gerekirse veritabanini migration ile olusturun:
 
----
+```bash
+dotnet ef database update --project Infrastructure/Infrastructure.csproj --startup-project API/API.csproj
+```
 
-## 🔐 Kimlik Doğrulama
+3. Uygulamayi calistirin:
 
-JWT tabanlı kimlik doğrulama sistemi entegredir. Swagger üzerinden token alıp test edebilirsiniz.
+```bash
+dotnet run --project API/API.csproj
+```
 
----
+Varsayilan development profili ile Swagger su adreste acilir:
 
-## 🧭 Yol Haritası
+```text
+https://localhost:1923/swagger
+```
 
-- [x] Çok dilli makale yapısı (tr, en, de)
-- [x] Kategori ve etiket yönetimi
-- [x] PDF içeriği, cover image, summary alanları
-- [x] View ve download sayaçları
-- [x] PageTranslation ile sayfa başlıkları
-- [ ] Admin panel entegrasyonu (yolda)
-- [ ] Rol bazlı yetkilendirme
-- [ ] Bildirim sistemi (opsiyonel)
+Not:
 
----
+- Uygulama acilisinda `Database.Migrate()` calistigi icin bekleyen migration'lar otomatik uygulanir.
+- Production ortaminda dogru PostgreSQL baglanti bilgisini environment variable olarak vermeniz gerekir.
+- Static file root varsayilan olarak Linux'ta `/data/polipersjournal`, Windows'ta `data/polipersjournal` altina yonlenir.
 
-## 📄 Lisans
+## PostgreSQL Gecisi
 
-Bu proje [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.html) lisansı ile lisanslanmıştır.
+MSSQL bagimliligi kaldirildi ve EF provider olarak `Npgsql.EntityFrameworkCore.PostgreSQL` kullaniliyor.
 
-> Yazılım özgürlüğünü önemseyen herkes için geliştirildi.
+Yapilan degisiklikler:
 
-- [Özgür yazılım nedir?](ozgur-yazilim-nedir.md)
+- tum projeler `net10.0` hedef framework'una tasindi
+- `UseSqlServer` yerine `UseNpgsql` kullanildi
+- SQL Server migration seti silindi
+- PostgreSQL icin yeni baslangic migration'i olusturuldu
+- `AspNetUsers.TC` kolonu gercek veri boyutuna gore genisletildi
+- SQL Server'daki mevcut veriyi PostgreSQL'e tasimak icin migrator araci eklendi
 
----
+Yeni migration dosyalari [Infrastructure/Migrations](/c:/Github/Organizations/Fupico/PoliPersJournal-Backend/Infrastructure/Migrations) altindadir.
 
-## 👨‍💻 Geliştirici
+## MSSQL -> PostgreSQL Veri Tasima
 
-**Devrim Mehmet Pattabanoğlu**  
-✉️ devrimmehmet@gmail.com  
-🔗 [LinkedIn](https://www.linkedin.com/in/devrim-mehmet-pattabanoglu/)
+Repo icinde iki yardimci bileşen bulunur:
 
----
+- [scripts/Sync-MssqlToPostgres.ps1](/c:/Github/Organizations/Fupico/PoliPersJournal-Backend/scripts/Sync-MssqlToPostgres.ps1)
+- [tools/DatabaseMigrator/Program.cs](/c:/Github/Organizations/Fupico/PoliPersJournal-Backend/tools/DatabaseMigrator/Program.cs)
 
-> "Mükemmeliyetçilik değil, başlamak önemlidir. Yolda geliştiririz."
+Veri tasimak icin:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/Sync-MssqlToPostgres.ps1
+```
+
+Bu script:
+
+- hedef PostgreSQL'e migration uygular
+- local MSSQL `PoliPersJournal` verisini PostgreSQL'e tasir
+- repo kokundeki `.env` ayarlarini kullanir
+
+## Docker ve Coolify
+
+Kok dizinde Coolify uyumlu bir [Dockerfile](/c:/Github/Organizations/Fupico/PoliPersJournal-Backend/Dockerfile) bulunuyor.
+
+Container davranisi:
+
+- multi-stage build kullanir
+- `API/API.csproj` publish edilir
+- uygulama `8080` portundan ayaga kalkar
+- `ASPNETCORE_URLS=http://+:8080` ile calisir
+- `APP_WWWROOT_PATH=/data/polipersjournal` ile kalici static file root kullanir
+- `/data/polipersjournal` volume olarak mount edilmeye uygundur
+
+Ornek `docker build` ve `docker run`:
+
+```bash
+docker build -t polipersjournal-backend .
+
+docker run --rm -p 8080:8080 ^
+  -e ASPNETCORE_ENVIRONMENT=Production ^
+  -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=polipersjournal;Username=postgres;Password=postgres" ^
+  -e APP_WWWROOT_PATH="/data/polipersjournal" ^
+  -e JwtSettings__Secret="change-this-secret-to-a-long-random-value" ^
+  -e JwtSettings__Issuer="PoliPersJournal" ^
+  -e JwtSettings__Audience="PoliPersJournal.Client" ^
+  -v polipersjournal_data:/data/polipersjournal ^
+  polipersjournal-backend
+```
+
+Coolify icin:
+
+- build type olarak `Dockerfile` secin
+- repository root'u build context olarak kullanin
+- container port olarak `8080` tanimlayin
+- persistent storage icin `Directory Mount` tanimlayip container path olarak `/data/polipersjournal` verin
+- PostgreSQL servisini ayri ekleyip `ConnectionStrings__DefaultConnection` env variable'ini verin
+- JWT ayarlarini env variable olarak tanimlayin
+
+## Kimlik Dogrulama
+
+JWT tabanli kimlik dogrulama yapisi aktif. Swagger uzerinden login olup token alip yetkili endpoint'leri test edebilirsiniz.
+
+## Lisans
+
+Bu proje `GNU GPL v3.0` lisansi ile dagitilir.

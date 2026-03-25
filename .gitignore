@@ -399,3 +399,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /API/appsettings.json
+.env
+.env.*
+!.env.example
+.artifacts/

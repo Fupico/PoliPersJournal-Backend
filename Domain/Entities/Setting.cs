@@ -15,7 +15,6 @@ namespace Domain.Entities
         public bool RequireTCApproval { get; set; } = false;
         public bool AllowUserRegistration { get; set; } = true;
         // 📌 Kullanıcıların hangi yöntemlerle giriş yapabileceğini belirler (tinyint)
-        [Column(TypeName = "TINYINT")]
         public LoginMethod AllowedLoginMethods { get; set; } = LoginMethod.Username;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;

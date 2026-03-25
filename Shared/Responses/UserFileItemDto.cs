@@ -2,10 +2,10 @@
 {
     public class UserFileItemDto
     {
-        public string FileName { get; set; }
+        public string FileName { get; set; } = string.Empty;
         public long FileSize { get; set; }
         public DateTime UploadDate { get; set; }
-        public string Url { get; set; }
+        public string Url { get; set; } = string.Empty;
 
         public string FileSizeReadable
         {

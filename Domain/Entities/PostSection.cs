@@ -14,7 +14,7 @@ namespace Domain.Entities
         public int Order { get; set; } = 0;
 
         public int PostTranslationId { get; set; }
-        public PostTranslation PostTranslation { get; set; }
+        public PostTranslation PostTranslation { get; set; } = null!;
     }
 
 

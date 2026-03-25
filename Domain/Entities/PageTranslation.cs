@@ -3,9 +3,9 @@
     public class PageTranslation
     {
         public int Id { get; set; }  // ✅ Benzersiz ID
-        public string PageKey { get; set; }  // ✅ "categories", "post-detail", "about" gibi sayfa kimliği
-        public string LanguageCode { get; set; } // ✅ "tr", "en", "de"
-        public string Title { get; set; }  // ✅ Sayfa Başlığı
-        public string Subtitle { get; set; }  // ✅ Sayfa Açıklaması
+        public string PageKey { get; set; } = string.Empty;  // ✅ "categories", "post-detail", "about" gibi sayfa kimliği
+        public string LanguageCode { get; set; } = string.Empty; // ✅ "tr", "en", "de"
+        public string Title { get; set; } = string.Empty;  // ✅ Sayfa Başlığı
+        public string Subtitle { get; set; } = string.Empty;  // ✅ Sayfa Açıklaması
     }
 }

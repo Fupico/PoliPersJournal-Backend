@@ -10,10 +10,10 @@ Bu katman, **veritabanı işlemleri, kimlik doğrulama, caching ve güvenlik mek
 ```plaintext
 📂 Infrastructure
 ├── 📂 Dependencies         # Infrastructure bağımlılıkları
-│   ├── Microsoft.EntityFrameworkCore (9.0.2)
-│   ├── Microsoft.EntityFrameworkCore.Design (9.0.2)
-│   ├── Microsoft.EntityFrameworkCore.SqlServer (9.0.2)
-│   ├── Microsoft.Extensions.Logging (9.0.2)
+│   ├── Microsoft.EntityFrameworkCore (10.0.0)
+│   ├── Microsoft.EntityFrameworkCore.Design (10.0.0)
+│   ├── Npgsql.EntityFrameworkCore.PostgreSQL (10.0.0)
+│   ├── System.IdentityModel.Tokens.Jwt (8.0.1)
 ├── 📂 Caching              # Önbellekleme mekanizması (MemoryCache)
 ├── 📂 Extensions           # Dependency Injection kayıtları
 │   ├── InfrastructureServiceCollectionExtensions.cs
@@ -35,8 +35,8 @@ Bu katman, **veritabanı işlemleri, kimlik doğrulama, caching ve güvenlik mek
 | ------------------------------------------ | ------------------------------------------------- |
 | `Microsoft.EntityFrameworkCore`            | ORM (Object Relational Mapping) işlemleri için.   |
 | `Microsoft.EntityFrameworkCore.Design`     | EF Core için migration desteği sağlar.            |
-| `Microsoft.EntityFrameworkCore.SqlServer`  | SQL Server bağlantısı için kullanılır.            |
-| `Microsoft.Extensions.Logging`             | Uygulama loglarını yönetmek için.                 |
+| `Npgsql.EntityFrameworkCore.PostgreSQL`    | PostgreSQL bağlantısı ve migration'lar icin kullanilir. |
+| `System.IdentityModel.Tokens.Jwt`          | JWT olusturma ve token islemleri icin kullanilir. |
 
 ---
 

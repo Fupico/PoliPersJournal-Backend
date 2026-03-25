@@ -22,8 +22,7 @@ namespace Domain.Entities
         public string? Address { get; set; }
 
         // 📌 TC Kimlik Numarası (SHA-256 ile şifrelenmiş)
-        [StringLength(11, MinimumLength = 11, ErrorMessage = "TC Kimlik Numarası 11 haneli olmalıdır.")]
-        [Column(TypeName = "varchar(256)")]
+        [MaxLength(256)]
         public string? TC { get; set; }
 
         // 🏢 Şirket & Lokasyon
@@ -42,7 +41,6 @@ namespace Domain.Entities
         public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow; // Güncelleme Zamanı
 
         // 🔒 Kullanıcı Durumu
-        [Column(TypeName = "TINYINT")]
         public byte Invalidated { get; set; } = 0;
 
         // 🔐 Varsayılan ID oluşturma

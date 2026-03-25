@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/.vscode/
+**/node_modules/
+.git/
+.gitignore
+README.md
+KlasorYapisi.md
+PoliPersJournal-Backend-Yapisi.md

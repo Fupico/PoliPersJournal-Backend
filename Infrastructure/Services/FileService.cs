@@ -48,6 +48,10 @@ namespace Infrastructure.Services
 
         public async Task<ApiResponse<string>> UploadFileAsync(IFormFile file, string userId)
         {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
+                return ApiResponse<string>.FailResponse("Active HTTP context was not found.", 500);
+
             var extension = Path.GetExtension(file.FileName).ToLower();
             var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg" };
 
@@ -74,7 +78,7 @@ namespace Infrastructure.Services
                 await file.CopyToAsync(stream);
             }
 
-            var request = _httpContextAccessor.HttpContext.Request;
+            var request = httpContext.Request;
             var fileUrl = $"{request.Scheme}://{request.Host}/uploads/{userId}/{date}/{uniqueFileName}";
 
             return ApiResponse<string>.SuccessResponse(fileUrl, "File uploaded successfully.");
@@ -87,10 +91,14 @@ namespace Infrastructure.Services
                 return Task.FromResult(ApiResponse<NoDataDto>.FailResponse("File not found.", 404));
 
             File.Delete(fullPath);
-            return Task.FromResult(ApiResponse<NoDataDto>.SuccessResponse(null, "File deleted."));
+            return Task.FromResult(ApiResponse<NoDataDto>.SuccessResponse(new NoDataDto(), "File deleted."));
         }
         public async Task<ApiResponse<List<UserFileItemDto>>> GetUserFilesAsync(string userId)
         {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null)
+                return ApiResponse<List<UserFileItemDto>>.FailResponse("Active HTTP context was not found.", 500);
+
             var basePath = Path.Combine(_env.WebRootPath, "uploads", userId);
             var fileList = new List<UserFileItemDto>();
 
@@ -103,7 +111,7 @@ namespace Infrastructure.Services
                 var info = new FileInfo(file);
 
                 var relativePath = Path.GetRelativePath(_env.WebRootPath, file).Replace("\\", "/");
-                var url = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/{relativePath}";
+                var url = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/{relativePath}";
 
                 var uploadDate = Directory.GetParent(file)?.Name; // yyyy-MM-dd formatlı klasör adı
 

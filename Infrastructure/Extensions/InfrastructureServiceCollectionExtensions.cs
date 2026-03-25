@@ -16,9 +16,14 @@ namespace Infrastructure.Extensions
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
+            }
 
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                    npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
             // Identity Konfigürasyonu
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>

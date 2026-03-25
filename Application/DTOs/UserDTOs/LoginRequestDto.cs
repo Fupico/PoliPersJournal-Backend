@@ -9,7 +9,7 @@ namespace Application.DTOs.UserDTOs
         public string? PhoneNumber { get; set; } // Telefon numarasıyla giriş yapılabilir
 
         [Required(ErrorMessage = "Şifre zorunludur.")]
-        public string Password { get; set; } // Şifre zorunludur
+        public string Password { get; set; } = string.Empty; // Şifre zorunludur
     }
 
 }

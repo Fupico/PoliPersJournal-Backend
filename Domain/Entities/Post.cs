@@ -4,11 +4,11 @@ namespace Domain.Entities
     public class Post
     {
         public int Id { get; set; }  // Blog yazısının benzersiz kimliği
-        public string Slug { get; set; } // SEO uyumlu URL için benzersiz bir slug
+        public string Slug { get; set; } = string.Empty; // SEO uyumlu URL için benzersiz bir slug
         public bool IsPublished { get; set; } // Yayınlanma durumu
         public DateTime CreatedAt { get; set; } // Oluşturulma zamanı
         public DateTime? UpdatedAt { get; set; } // Güncellenme zamanı
-        public string CreatedBy { get; set; } // Yazıyı oluşturan kullanıcının ID'si
+        public string CreatedBy { get; set; } = string.Empty; // Yazıyı oluşturan kullanıcının ID'si
 
         // 📌 SEO Alanları
         public string MetaTitle { get; set; } = string.Empty;  // SEO için başlık
@@ -25,7 +25,7 @@ namespace Domain.Entities
         public virtual ICollection<PostTag> Tags { get; set; } = new List<PostTag>(); // Etiketlerle ilişki
         public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>(); // Yorumlar
         public virtual ICollection<PostDownloadTracking> DownloadTrackings { get; set; } = new List<PostDownloadTracking>(); // 📥 İndirme takibi
-        public virtual ApplicationUser CreatedByUser { get; set; } // Navigation YAZAR
+        public virtual ApplicationUser CreatedByUser { get; set; } = null!; // Navigation YAZAR
 
         // ✅ Yeni: Çok yazarlı destek
         public virtual ICollection<PostAuthor> Authors { get; set; } = new List<PostAuthor>();

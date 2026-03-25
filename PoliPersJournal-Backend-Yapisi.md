@@ -1,32 +1,132 @@
-﻿# Fupitech Backend Yapısı
+# PoliPersJournal Backend Yapisi
 
-Bu proje **.NET 9 Web API** mimarisiyle geliştirilmiş olup **DDD (Domain-Driven Design) + Clean Architecture** prensiplerini temel alır.  
-Her katman tek bir sorumluluğa sahiptir ve birbirleriyle **bağımsız** çalışacak şekilde tasarlanmıştır.
+Bu proje `.NET 10 Web API` ile gelistirilmis olup `DDD (Domain-Driven Design)` ve `Clean Architecture` prensiplerini temel alir. Katmanlar birbirinden ayridir ve her katmanin sorumlulugu nettir.
 
-## 📂 Proje Yapısı
+Guncel teknik durum:
 
-Aşağıda her katman için detaylı açıklamalara ulaşabilirsiniz:
+- backend `net10.0` uzerinde calisir
+- veri tabani olarak `PostgreSQL` kullanilir
+- EF Core provider olarak `Npgsql.EntityFrameworkCore.PostgreSQL` kullanilir
+- migration'lar startup sirasinda otomatik uygulanir
+- `.env` dosyasindan environment variable okunabilir
+- static file root kalici mount dizinine yonlenebilir
+- kok dizindeki `Dockerfile` ile Coolify uyumlu deploy alinabilir
 
-### 📌 [API (Web API Katmanı)](API/Readme.md)
+## Katmanlar
 
-📌 **Kullanıcıların HTTP istekleriyle etkileşime geçtiği katmandır.**
+### [API](API/Readme.md)
 
-### 📌 [Application (İş Mantığı Katmanı)](Application/Readme.md)
+Dis dunyaya acilan katmandir.
 
-📌 **Servisler, DTO'lar ve uygulama iş mantığını içeren katmandır.**
+Bu katmanda:
 
-### 📌 [Domain (Çekirdek Katman)](Domain/Readme.md)
+- controller'lar
+- middleware'ler
+- JWT authentication konfigurasyonu
+- CORS ayarlari
+- Swagger konfigurasyonu
+- uygulama startup akisi
 
-📌 **Veritabanı modelleri, iş kuralları ve repository arayüzleri bulunur.**
+yer alir.
 
-### 📌 [Infrastructure (Veri Erişim Katmanı)](Infrastructure/Readme.md)
+Ek olarak `Program.cs` icinde:
 
-📌 **Veritabanı işlemleri, kimlik doğrulama ve caching mekanizmaları bulunur.**
+- `Application` ve `Infrastructure` servis kayitlari yapilir
+- veritabani migration'i acilista uygulanir
+- static file ve pipeline yonetimi yapilir
+- `APP_WWWROOT_PATH` ile persistent `wwwroot` yolu belirlenebilir
 
-### 📌 [Shared (Ortak Bileşenler)](Shared/Readme.md)
+### [Application](Application/Readme.md)
 
-📌 **Genel yardımcı metotlar, hata yönetimi ve API yanıtlarını içerir.**
+Uygulamanin is mantigini barindirir.
 
----
+Bu katmanda:
 
-📌 **Bu dokümantasyon sürekli güncellenecektir. Eğer yeni bir yapı eklenirse ilgili katmanın `README.md` dosyası güncellenmelidir.** 🚀
+- servisler
+- DTO'lar
+- servis arayuzleri
+- validation siniflari
+
+yer alir.
+
+`Application` katmani domain kurallarini kullanir ancak veri erisim detaylarini bilmez.
+
+### [Domain](Domain/Readme.md)
+
+Sistemin cekirdek modelidir.
+
+Bu katmanda:
+
+- entity'ler
+- enum'lar
+- repository arayuzleri
+- domain'e ait temel kurallar
+
+yer alir.
+
+Bu katman altyapi detaylarindan bagimsiz tutulur.
+
+### [Infrastructure](Infrastructure/Readme.md)
+
+Dis bagimliliklarin somutlandigi katmandir.
+
+Bu katmanda:
+
+- `AppDbContext`
+- EF Core migration'lari
+- PostgreSQL baglantisi
+- repository implementasyonlari
+- JWT ve sifreleme servisleri
+- dosya servisi
+- design-time `DbContextFactory`
+- veri tasima icin yardimci migrator araclari
+
+yer alir.
+
+Bu gecisle birlikte:
+
+- `UseSqlServer` kaldirildi
+- `UseNpgsql` eklendi
+- MSSQL migration dosyalari temizlendi
+- PostgreSQL icin yeni migration seti olusturuldu
+- local MSSQL verisini PostgreSQL'e tasimak icin script ve arac eklendi
+
+### [Shared](Shared/Readme.md)
+
+Katmanlar arasinda ortak kullanilan yapilar burada tutulur.
+
+Bu katmanda:
+
+- ortak response modelleri
+- exception siniflari
+- yardimci yapilar
+
+yer alir.
+
+## Calisma ve Deploy Ozeti
+
+Lokal gelistirme icin:
+
+- `.NET 10 SDK`
+- `PostgreSQL`
+- SQL Server erisimi
+
+gereklidir.
+
+Deploy tarafinda:
+
+- kok dizindeki `Dockerfile` multi-stage build kullanir
+- uygulama container icinde `8080` portundan ayaga kalkar
+- static file dizini `/data/polipersjournal` mount noktasina yonlenebilir
+- Coolify tarafinda `ConnectionStrings__DefaultConnection` ve `JwtSettings__*` env degiskenleri verilmelidir
+- istenirse `.env` anahtarlari ayni isimlerle kullanilabilir
+
+## Dokumantasyon Kurali
+
+Projeye yeni klasor, servis, provider ya da deploy adimi eklendiginde:
+
+- `README.md`
+- `KlasorYapisi.md`
+- ilgili katmanin kendi `Readme.md` dosyasi
+
+birlikte guncellenmelidir.

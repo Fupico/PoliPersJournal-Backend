@@ -2,15 +2,24 @@
 using Application.Extensions;  // Application servislerini eklemek için
 using Domain.Interfaces;
 using Infrastructure.Extensions;  // Infrastructure servislerini eklemek için
+using Infrastructure.Persistence;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
-using System.Runtime.InteropServices; // OperatingSystem için
 
-var builder = WebApplication.CreateBuilder(args);
+LoadDotEnv();
+var persistentWebRootPath = ResolveWebRootPath();
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    WebRootPath = persistentWebRootPath
+});
 
 // ✅ 1️⃣ Logging Ayarları
 builder.Logging.ClearProviders();
@@ -36,6 +45,7 @@ builder.Services.AddHttpContextAccessor(); // IHttpContextAccessor için
 
 // ✅ 3️⃣ JWT Authentication Ayarları
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var jwtSecret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JwtSettings:Secret is not configured.");
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,7 +58,7 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidIssuer = jwtSettings["Issuer"],
@@ -97,11 +107,21 @@ builder.Services.AddSwaggerGen(c =>
     c.IncludeXmlComments(xmlPath);
 
 });
-builder.Services.AddOpenApi();
-
-
 var app = builder.Build();
-app.UseStaticFiles(); // wwwroot varsayılan olarak buraya bağlanır
+
+EnsureWebRootDirectory(app.Environment.WebRootPath);
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(app.Environment.WebRootPath),
+    RequestPath = string.Empty
+});
 app.Use(async (context, next) =>
 {
     try
@@ -132,33 +152,96 @@ if (app.Environment.IsDevelopment()) // 🔹 5️⃣ Geliştirme ortamı için S
 
 app.MapControllers(); // 🔹 6️⃣ Controller'ları API'ye kaydet
 
-// 📁 wwwroot klasörü yolu
-var wwwRootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+app.Run();
 
-// 📁 wwwroot yoksa oluştur
-if (!Directory.Exists(wwwRootPath))
+static void LoadDotEnv()
 {
-    Directory.CreateDirectory(wwwRootPath);
-    Console.WriteLine($"📁 wwwroot klasörü oluşturuldu: {wwwRootPath}");
-}
-else
-{
-    Console.WriteLine($"📁 wwwroot klasörü zaten mevcut: {wwwRootPath}");
+    foreach (var candidate in GetEnvCandidates())
+    {
+        if (!File.Exists(candidate))
+        {
+            continue;
+        }
+
+        foreach (var rawLine in File.ReadAllLines(candidate))
+        {
+            var line = rawLine.Trim();
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+            {
+                continue;
+            }
+
+            var separatorIndex = line.IndexOf('=');
+            if (separatorIndex <= 0)
+            {
+                continue;
+            }
+
+            var key = line[..separatorIndex].Trim();
+            var value = line[(separatorIndex + 1)..].Trim().Trim('"');
+
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(key)))
+            {
+                Environment.SetEnvironmentVariable(key, value);
+            }
+        }
+
+        break;
+    }
 }
 
-// 🐧 Eğer Linux sistemdeysek, 777 yetkisi ver
-if (OperatingSystem.IsLinux())
+static IEnumerable<string> GetEnvCandidates()
 {
+    var currentDirectory = Directory.GetCurrentDirectory();
+    yield return Path.Combine(currentDirectory, ".env");
+
+    var parentDirectory = Directory.GetParent(currentDirectory);
+    if (parentDirectory is not null)
+    {
+        yield return Path.Combine(parentDirectory.FullName, ".env");
+    }
+}
+
+static string ResolveWebRootPath()
+{
+    var configuredPath = Environment.GetEnvironmentVariable("APP_WWWROOT_PATH");
+    if (!string.IsNullOrWhiteSpace(configuredPath))
+    {
+        return Path.GetFullPath(configuredPath);
+    }
+
+    if (OperatingSystem.IsLinux())
+    {
+        return "/data/polipersjournal";
+    }
+
+    return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "data", "polipersjournal"));
+}
+
+static void EnsureWebRootDirectory(string webRootPath)
+{
+    if (!Directory.Exists(webRootPath))
+    {
+        Directory.CreateDirectory(webRootPath);
+        Console.WriteLine($"Static file root created: {webRootPath}");
+    }
+    else
+    {
+        Console.WriteLine($"Static file root already exists: {webRootPath}");
+    }
+
+    if (!OperatingSystem.IsLinux())
+    {
+        return;
+    }
+
     try
     {
-        var chmod = System.Diagnostics.Process.Start("chmod", $"-R 777 {wwwRootPath}");
+        var chmod = System.Diagnostics.Process.Start("chmod", $"-R 777 {webRootPath}");
         chmod?.WaitForExit();
-        Console.WriteLine($"🔐 wwwroot klasörüne 777 chmod verildi: {wwwRootPath}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"⚠️ chmod hatası: {ex.Message}");
+        Console.WriteLine($"chmod failed for static file root: {ex.Message}");
     }
 }
-
-app.Run();
